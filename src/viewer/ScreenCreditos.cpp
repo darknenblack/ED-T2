@@ -1,23 +1,20 @@
 #include "../../include/ScreenCreditos.hpp"
 #include "../../include/Config.hpp"
 #include "../../include/FontManager.hpp"
-#include "../../include/MusicManager.hpp"
-#include "../../include/TextureManager.hpp"
 
 ScreenCreditos::ScreenCreditos( GameRef& gameRef )
     : Screen( gameRef ) {
     loadAssets();
-    centralizarTexto();
 }
 
 void ScreenCreditos::loadAssets() {
-    FontManager::add( "RobotoCondensed", "roboto-condensed/RobotoCondensed-Regular.ttf" );
+    FontManager::add( "gnutypewriter", "gtw.ttf" );
 
     for( unsigned int i = 0; i < lines.size(); i++ ) {
-        lines[ i ].setFont( FontManager::get( "RobotoCondensed" ) );
+        lines[ i ].setFont( FontManager::get( "gnutypewriter" ) );
         lines[ i ].setCharacterSize( 50 );
         lines[ i ].setFillColor( sf::Color::White );
-        lines[ i ].setOutlineColor( sf::Color::Black );
+        lines[ i ].setOutlineColor( sf::Color::Red );
         lines[ i ].setOutlineThickness( 3 );
     }
 
@@ -27,19 +24,14 @@ void ScreenCreditos::loadAssets() {
     lines[ 3 ].setString( L"UFSCar São Carlos" );
     lines[ 4 ].setString( "2018" );
 
-    TextureManager::add( "backgroundCreditos", "credits.jpg" );
-    background.setTexture( TextureManager::get( "backgroundCreditos" ) );
-
-    if( *isAudioOn ) {
-        MusicManager::add( "ganhou", "happy_ending.ogg" );
-        music = &MusicManager::get( "ganhou" );
-        music->setLoop( true );
-    }
+    init();
+    // TODO Add background texture
 }
 
-void ScreenCreditos::centralizarTexto() {
+void ScreenCreditos::init() {
     int y = WINDOW_HEIGHT;
 
+    // Centering text on the screen
     for( unsigned int i = 0; i < lines.size(); i++ ) {
         lines[ i ].move( 0, 0 );
         lines[ i ].setOrigin( lines[ i ].getLocalBounds().width / 2, 0 );
@@ -61,13 +53,8 @@ void ScreenCreditos::draw() {
 }
 
 void ScreenCreditos::update() {
-    if( *isAudioOn && music->getStatus() != sf::SoundSource::Status::Playing ) {
-        music->play();
-    }
-
     while( window->pollEvent( *event ) ) {
         if( event->type == sf::Event::Closed ) {
-            music->stop();
             window->close();
         }
     }
@@ -75,11 +62,10 @@ void ScreenCreditos::update() {
         lines[ i ].move( 0, -1.5f );
     }
 
-    // Para quando a última linha estiver fora da view
+    // Stop when the last line is outside screen
     if( lines[ lines.size() - 1 ].getPosition().y <
         -( lines[ lines.size() - 1 ].getGlobalBounds().height + 10 ) ) {
-        centralizarTexto();
-        music->stop();
+        init();
         *nextScreen = MENU;
     }
 
